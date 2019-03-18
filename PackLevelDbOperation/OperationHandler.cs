@@ -35,7 +35,7 @@ namespace PackLevelDbOperation
             {
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                 {
-                    ZipArchiveEntry readmeEntry = archive.GetEntry(string.Format(@"operation.{0}-{1}.acc",startHeight,endHeight));
+                    ZipArchiveEntry readmeEntry = archive.CreateEntry(string.Format("operation.{0}-{1}.acc",startHeight,endHeight));
                     using (BinaryWriter writer = new BinaryWriter(readmeEntry.Open()))
                     {
                         //先插入 开始高度已经结束高度

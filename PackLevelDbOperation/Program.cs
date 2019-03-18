@@ -98,9 +98,10 @@ namespace PackLevelDbOperation
 
         static void ShowState()
         {
+            bool stop = false;
             Task task2 = new Task(async () =>
             {
-                while (true)
+                while (!stop)
                 {
                     Console.Clear();
                     Console.WriteLine(string.Format("{0}/{1}", handler?.startHeight, handler?.endHeight));
@@ -109,6 +110,9 @@ namespace PackLevelDbOperation
             });
 
             task2.Start();
+
+            Console.ReadLine();
+            stop = true;
         }
     }
 }
