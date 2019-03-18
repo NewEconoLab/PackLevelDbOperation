@@ -53,6 +53,9 @@ namespace PackLevelDbOperation
                 case "upload":
                     StartUpload();
                     break;
+                case "read":
+                    StartRead();
+                    break;
             }
         }
 
@@ -64,6 +67,16 @@ namespace PackLevelDbOperation
                     ShowState();
                     break;
             }
+        }
+
+        static void StartRead()
+        {
+            Task task1 = new Task(() =>
+            {
+                handler.GetFromZip();
+            });
+
+            task1.Start();
         }
 
         static void StartUpload()

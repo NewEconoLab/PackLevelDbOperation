@@ -4,8 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace PackLevelDbOperation
 {
@@ -32,11 +31,11 @@ namespace PackLevelDbOperation
         {
             startHeight = _startHeight;
             endHeight = _endHeight;
-            using (FileStream zipToOpen = new FileStream("release.zip", FileMode.Create))
+            using (FileStream zipToOpen = new FileStream("release.zip", FileMode.OpenOrCreate))
             {
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                 {
-                    ZipArchiveEntry readmeEntry = archive.CreateEntry("operation.acc");
+                    ZipArchiveEntry readmeEntry = archive.GetEntry(string.Format(@"operation.{0}-{1}.acc",startHeight,endHeight));
                     using (BinaryWriter writer = new BinaryWriter(readmeEntry.Open()))
                     {
                         //先插入 开始高度已经结束高度
@@ -71,31 +70,37 @@ namespace PackLevelDbOperation
         {
             using (FileStream fs = new FileStream("release.zip", FileMode.Open, FileAccess.Read, FileShare.Read))
             using (ZipArchive zip = new ZipArchive(fs, ZipArchiveMode.Read))
-            using (Stream zs = zip.GetEntry("operation.acc").Open())
             {
-                List<LevelDbOperation> list = new List<LevelDbOperation>();
-                BinaryReader b = new BinaryReader(zs);
+                foreach (var entry in zip.Entries)
                 {
-                    //开始高度
-                    var startHeight = b.ReadUInt32();
-                    //结束高度
-                    var endHeight = b.ReadUInt32();
-
-                    for (var i = startHeight; i <= endHeight; i++)
+                    using (Stream zs = entry.Open())
                     {
-                        //获取到的数据的高度
-                        var height = b.ReadUInt32();
-                        var count = b.ReadUInt32();
-                        for (var ii = 0; ii < count; ii++)
+                        List<LevelDbOperation> list = new List<LevelDbOperation>();
+                        BinaryReader b = new BinaryReader(zs);
                         {
-                            var l = LevelDbOperation.Deserialize(ref b);
-                            list.Add(l);
-                        }
-                    }
+                            //开始高度
+                            var startHeight = b.ReadUInt32();
+                            //结束高度
+                            var endHeight = b.ReadUInt32();
 
+                            for (var i = startHeight; i <= endHeight; i++)
+                            {
+                                //获取到的数据的高度
+                                var height = b.ReadUInt32();
+                                var count = b.ReadUInt32();
+                                for (var ii = 0; ii < count; ii++)
+                                {
+                                    var l = LevelDbOperation.Deserialize(ref b);
+                                    list.Add(l);
+                                }
+                            }
+
+                        }
+                        b.Dispose();
+                    }
                 }
-                b.Dispose();
             }
+
         }
     }
 }
